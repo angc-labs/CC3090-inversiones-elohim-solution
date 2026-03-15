@@ -1,15 +1,14 @@
 -- ============================================================
 --  Inversiones Elohim, S.A. — Script mínimo PostgreSQL
---  Ajustado según P01DB.json
 -- ============================================================
 
-DROP DATABASE IF EXISTS elohim_db;
-DROP ROLE IF EXISTS elohim_user;
+-- DROP DATABASE IF EXISTS elohim_db;
+-- DROP ROLE IF EXISTS elohim_user;
 
-CREATE ROLE elohim_user WITH LOGIN PASSWORD 'ElohimS3cur3!';
-CREATE DATABASE elohim_db WITH OWNER = elohim_user ENCODING = 'UTF8';
+-- CREATE ROLE elohim_user WITH LOGIN PASSWORD 'ElohimS3cur3!';
+-- CREATE DATABASE elohim_db WITH OWNER = elohim_user ENCODING = 'UTF8';
 
-\c elohim_db
+-- \c elohim_db
 
 -- ------------------------------------------------------------
 -- Tablas maestras
