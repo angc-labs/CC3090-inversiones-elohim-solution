@@ -1,0 +1,6 @@
+@ElohimShop.API_HostAddress = http://localhost:5025
+
+GET {{ElohimShop.API_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

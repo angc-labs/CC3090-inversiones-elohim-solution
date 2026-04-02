@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/ElohimShop.API/ElohimShop.API.csproj" />
+    <Project Path="src/ElohimShop.Application/ElohimShop.Application.csproj" />
+    <Project Path="src/ElohimShop.Domain/ElohimShop.Domain.csproj" />
+    <Project Path="src/ElohimShop.Infrastructure/ElohimShop.Infrastructure.csproj" />
+  </Folder>
+</Solution>
