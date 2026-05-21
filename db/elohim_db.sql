@@ -84,7 +84,10 @@ CREATE TABLE Producto (
     fecha_vencimiento   TIMESTAMPTZ  NOT NULL,
     imagen_principal    TEXT,
     fecha_creacion      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    fecha_actualizacion TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    fecha_actualizacion TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    stock_minimo         INTEGER      NOT NULL CHECK (stock_minimo >= 0),
+    descuento_porcentaje  DECIMAL(5, 2)   NOT NULL CHECK (descuento_porcentaje >= 0 AND descuento_porcentaje <= 100),
+    oferta_hasta         timestamptz 
 );
 
 CREATE INDEX ix_producto_categoria_id ON Producto (categoria_id);
