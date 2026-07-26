@@ -32,8 +32,8 @@ services:
       DB_PASSWORD: ${DB_PASSWORD:-postgres}
       DB_NAME: ${DB_NAME:-dmhub}
       SEED_DATA: ${SEED_DATA:-${SEED_DEMO_DATA:-true}}
-      SEED_USER_EMAIL: ${SEED_USER_EMAIL}
-      SEED_USER_PASSWORD: ${SEED_USER_PASSWORD}
+      SEED_USER_EMAIL: ${SEED_USER_EMAIL:-admin@dmhub.local}
+      SEED_USER_PASSWORD: ${SEED_USER_PASSWORD:-Admin123!}
 
   frontend:
     build:
