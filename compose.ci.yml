@@ -1,0 +1,10 @@
+services:
+  backend:
+    image: elohim-backend:ci
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+  frontend:
+    image: elohim-frontend:ci
+  docs:
+    image: elohim-docs:ci
+    volumes: !reset []

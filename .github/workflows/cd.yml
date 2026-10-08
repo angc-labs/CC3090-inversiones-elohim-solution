@@ -17,47 +17,11 @@ jobs:
       github.event.workflow_run.event == 'push' &&
       github.event.workflow_run.head_repository.full_name == github.repository
     runs-on: ubuntu-latest
-    timeout-minutes: 15
-    env:
-      DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
-      BACKEND_IMAGE: ${{ vars.DOCKERHUB_BACKEND_IMAGE }}
-      FRONTEND_IMAGE: ${{ vars.DOCKERHUB_FRONTEND_IMAGE }}
-      DOCS_IMAGE: ${{ vars.DOCKERHUB_DOCS_IMAGE }}
-      IMAGE_SHA: ${{ github.event.workflow_run.head_sha }}
+    timeout-minutes: 5
     steps:
-      - name: Validate Docker Hub configuration
+      - name: Skip root artifact publish
         run: |
-          test -n "$DOCKERHUB_USERNAME" || { echo 'Configure the DOCKERHUB_USERNAME repository secret'; exit 1; }
-          for image in "$BACKEND_IMAGE" "$FRONTEND_IMAGE" "$DOCS_IMAGE"; do
-            test -n "$image" || { echo 'Configure DOCKERHUB_BACKEND_IMAGE, DOCKERHUB_FRONTEND_IMAGE and DOCKERHUB_DOCS_IMAGE'; exit 1; }
-          done
-
-      - name: Download image from successful CI run
-        uses: actions/download-artifact@v4
-        with:
-          name: stack-images
-          path: image
-          github-token: ${{ github.token }}
-          run-id: ${{ github.event.workflow_run.id }}
-
-      - name: Load validated image
-        run: docker load --input image/stack-images.tar.gz
-
-      - name: Log in to Docker Hub
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-      - name: Publish validated stack images
-        run: |
-          for component in backend frontend docs; do
-            case "$component" in
-              backend) image="$BACKEND_IMAGE" ;;
-              frontend) image="$FRONTEND_IMAGE" ;;
-              docs) image="$DOCS_IMAGE" ;;
-            esac
-            docker tag "elohim-$component:ci" "$image:stack-$IMAGE_SHA"
-            docker push "$image:stack-$IMAGE_SHA"
-            echo "Published: $image:stack-$IMAGE_SHA" >> "$GITHUB_STEP_SUMMARY"
-          done
+          echo "The root repository does not build the stack images."
+          echo "Backend, frontend, and docs publish their own Docker images from their respective repositories."
+          echo "This stack workflow is kept as a compatibility check only."
+          echo "Deployment is handled by the submodule repositories."
