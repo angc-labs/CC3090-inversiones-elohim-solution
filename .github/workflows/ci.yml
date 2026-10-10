@@ -109,6 +109,24 @@ jobs:
             test "$(docker inspect --format '{{.RestartCount}}' "$container")" = 0
           done
 
+      - name: Run Bruno Integration and Regression Tests
+        run: |
+          cd "$GITHUB_WORKSPACE/stack/tests/bruno"
+          npx -y @usebruno/cli run -r \
+            --env ci \
+            --reporter-junit "${RUNNER_TEMP}/results-bruno.xml" \
+            --reporter-html "${RUNNER_TEMP}/results-bruno.html"
+
+      - name: Upload Bruno test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: bruno-test-results
+          path: |
+            ${{ runner.temp }}/results-bruno.xml
+            ${{ runner.temp }}/results-bruno.html
+          if-no-files-found: warn
+
       - name: Show backend container status and logs
         if: always()
         run: |
