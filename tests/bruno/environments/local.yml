@@ -1,0 +1,17 @@
+name: local
+variables:
+  - name: baseUrl
+    value: http://localhost:5000
+    enabled: true
+  - name: tenantId
+    value: 7a2a29c5-393e-43e8-afb5-8363b95ef07e
+    enabled: true
+  - name: tenantSlug
+    value: dmhub
+    enabled: true
+  - name: adminEmail
+    value: admin1@test.com
+    enabled: true
+  - name: adminPassword
+    value: "123456789"
+    enabled: true

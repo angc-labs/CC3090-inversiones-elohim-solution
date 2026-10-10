@@ -1,0 +1,32 @@
+info:
+  name: 02_regresion_bloqueo_sql_destructivo
+  type: http
+  seq: 2
+http:
+  method: POST
+  url: "{{baseUrl}}/api/v1/reportes/ejecutar-raw"
+  headers:
+    - name: Content-Type
+      value: application/json
+      enabled: true
+    - name: Authorization
+      value: "Bearer {{authToken}}"
+      enabled: true
+    - name: X-Tenant-Slug
+      value: "{{tenantSlug}}"
+      enabled: true
+  body:
+    type: json
+    data: '{"querySql":"DROP TABLE \"user\";"}'
+runtime:
+  assertions:
+    - expression: res.status
+      operator: eq
+      value: "400"
+  scripts:
+    - type: tests
+      code: |
+        test("Validación de seguridad bloquea comandos destructivos DDL/DML", function() {
+          expect(res.status).to.equal(400);
+          expect(res.body.message).to.include("Solo se permiten consultas de lectura");
+        });

@@ -1,0 +1,26 @@
+info:
+  name: 01_regresion_aislamiento_tenant
+  type: http
+  seq: 1
+http:
+  method: GET
+  url: "{{baseUrl}}/api/v1/carrito"
+  headers:
+    - name: Authorization
+      value: "Bearer {{authToken}}"
+      enabled: true
+    - name: X-Tenant-Slug
+      value: tienda-fantasma-inexistente
+      enabled: true
+runtime:
+  assertions:
+    - expression: res.status
+      operator: eq
+      value: "404"
+  scripts:
+    - type: tests
+      code: |
+        test("Aislamiento de tenant protege contra fuga de datos entre tiendas", function() {
+          expect(res.status).to.equal(404);
+          expect(res.body.error).to.include("La tienda solicitada no existe");
+        });

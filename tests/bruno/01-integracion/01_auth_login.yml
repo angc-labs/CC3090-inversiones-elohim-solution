@@ -1,0 +1,37 @@
+info:
+  name: 01_auth_login
+  type: http
+  seq: 1
+http:
+  method: POST
+  url: "{{baseUrl}}/api/v1/auth/login"
+  headers:
+    - name: Content-Type
+      value: application/json
+      enabled: true
+  body:
+    type: json
+    data: '{"correo":"{{adminEmail}}","contrasena":"{{adminPassword}}"}'
+runtime:
+  assertions:
+    - expression: res.status
+      operator: eq
+      value: "200"
+    - expression: res.body.correo
+      operator: eq
+      value: "{{adminEmail}}"
+  scripts:
+    - type: after-response
+      code: |
+        const body = res.getBody();
+        if (body && body.token) {
+          bru.setVar("authToken", body.token);
+          bru.setVar("adminUserId", body.usuarioId);
+        }
+    - type: tests
+      code: |
+        test("Autenticación exitosa y emisión de JWT para admin", function() {
+          expect(res.status).to.equal(200);
+          expect(res.body.token).to.be.a("string");
+          expect(res.body.rol).to.equal("administrador");
+        });
