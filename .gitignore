@@ -49,3 +49,6 @@ docker-compose.override.yml
 .DS_Store
 Thumbs.db
 desktop.ini
+# Test outputs
+**/results-bruno.*
+**/test-results/
