@@ -1,0 +1,79 @@
+name: TruffleHog Audit
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  trufflehog:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      TRUFFLEHOG_VERSION: '3.99.7'
+      # SHA-256 de trufflehog_3.99.7_linux_amd64.tar.gz, tomado de checksums.txt con firma cosign verificada; actualizar junto con la versión
+      TRUFFLEHOG_SHA256: 'bdbea0508e439b144f49de14e775908de5f902f3d14ea7ae8354bae72b0b72ef'
+    steps:
+      - name: Install TruffleHog
+        run: |
+          base="https://github.com/trufflesecurity/trufflehog/releases/download/v${TRUFFLEHOG_VERSION}"
+          archive="trufflehog_${TRUFFLEHOG_VERSION}_linux_amd64.tar.gz"
+          cd "$RUNNER_TEMP"
+          curl -sSfL "$base/$archive" -o "$archive"
+          echo "${TRUFFLEHOG_SHA256}  $archive" | sha256sum --check -
+          tar -xzf "$archive" trufflehog
+          sudo install -m 0755 trufflehog /usr/local/bin/trufflehog
+          trufflehog --version
+
+      # Solo se escanean los 4 repositorios del proyecto; no se incluyen cuentas de miembros.
+      # El SARIF no incluye valores de secretos; la salida va a archivo y no a la consola.
+      - name: Scan project repositories
+        env:
+          GITHUB_TOKEN: ${{ secrets.AUDIT_GITHUB_TOKEN }}
+        run: |
+          test -n "$GITHUB_TOKEN" || { echo '::error::Configure the AUDIT_GITHUB_TOKEN repository secret (read access to the 4 repositories)'; exit 1; }
+          SARIF_FILE="$RUNNER_TEMP/trufflehog.sarif"
+          trufflehog github --no-update --sarif \
+            --repo=https://github.com/angc-labs/CC3090-inversiones-elohim-solution \
+            --repo=https://github.com/angc-labs/CC3090-inversiones-elohim-solution-backend \
+            --repo=https://github.com/angc-labs/CC3090-inversiones-elohim-solution-frontend \
+            --repo=https://github.com/angc-labs/CC3090-inversiones-elohim-solution-docs \
+            > "$SARIF_FILE" 2> "$RUNNER_TEMP/trufflehog.log" \
+            || { tail -n 30 "$RUNNER_TEMP/trufflehog.log"; exit 1; }
+
+      - name: Check report contains no secret values
+        run: |
+          SARIF_FILE="$RUNNER_TEMP/trufflehog.sarif"
+          bad="$(jq '[.runs[].results[]?.message.text | select(test("^Found (verified|unverified|unknown) result for detector .{1,80}\\.$") | not)] | length' "$SARIF_FILE")"
+          if [ "$bad" != "0" ]; then
+            echo "::error::Unexpected result messages in the SARIF report; it was not published"
+            rm -f "$SARIF_FILE"
+            exit 1
+          fi
+
+      - name: Summarize findings
+        run: |
+          SARIF_FILE="$RUNNER_TEMP/trufflehog.sarif"
+          total="$(jq '[.runs[].results[]?] | length' "$SARIF_FILE")"
+          {
+            echo "## TruffleHog audit (v${TRUFFLEHOG_VERSION})"
+            echo
+            echo "Findings: **${total}**. They are candidates for review; each one must be confirmed as real or a false positive."
+            echo
+            echo "| Detector | File | Count |"
+            echo "|---|---|---|"
+            jq -r '[.runs[].results[]? | {r: .ruleId, f: (.locations[0].physicalLocation.artifactLocation.uri // "n/a")}] | group_by(.r + "|" + .f)[] | "| \(.[0].r) | \(.[0].f) | \(length) |"' "$SARIF_FILE"
+          } >> "$GITHUB_STEP_SUMMARY"
+          if [ "$total" != "0" ]; then
+            echo "::warning::TruffleHog reported ${total} finding(s). Review the job summary and the trufflehog-sarif artifact."
+          fi
+
+      - name: Upload SARIF report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: trufflehog-sarif
+          path: ${{ runner.temp }}/trufflehog.sarif
+          retention-days: 7
+          if-no-files-found: ignore
