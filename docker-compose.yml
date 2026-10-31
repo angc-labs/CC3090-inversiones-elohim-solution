@@ -64,8 +64,21 @@ services:
     image: nginx:alpine
     restart: unless-stopped
     ports:
-      - "80:80"
-      - "443:443"
+      - "${NGINX_HTTP_PORT:-80}:80"
+      - "${NGINX_HTTPS_PORT:-443}:443"
+    entrypoint: >
+      /bin/sh -c '
+      mkdir -p /etc/letsencrypt/live/dmhub.fun /var/www/certbot;
+      if [ ! -f /etc/letsencrypt/live/dmhub.fun/fullchain.pem ] || [ ! -f /etc/letsencrypt/live/dmhub.fun/privkey.pem ]; then
+        echo "==> Generando certificado SSL autofirmado de respaldo para Nginx...";
+        apk add --no-cache openssl >/dev/null 2>&1 || true;
+        openssl req -x509 -nodes -newkey rsa:2048 -days 365 \
+          -keyout /etc/letsencrypt/live/dmhub.fun/privkey.pem \
+          -out /etc/letsencrypt/live/dmhub.fun/fullchain.pem \
+          -subj "/CN=dmhub.fun" 2>/dev/null || true;
+      fi;
+      exec nginx -g "daemon off;"
+      '
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf:ro
       - ./certbot/conf:/etc/letsencrypt
