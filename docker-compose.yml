@@ -52,6 +52,7 @@ services:
       GEMINI_API_KEY: ${GEMINI_API_KEY:-}
 
   docs:
+    image: dmhub-docs:production
     build:
       context: ./docs
     restart: unless-stopped
