@@ -24,6 +24,8 @@ fi
 export NODE_ENV=production
 export ASPNETCORE_ENVIRONMENT=Production
 export COMPOSE_FILE=docker-compose.yml
+export NGINX_HTTP_PORT="${NGINX_HTTP_PORT:-80}"
+export NGINX_HTTPS_PORT="${NGINX_HTTPS_PORT:-443}"
 
 # 3. Preparar directorios y certificados SSL mínimos para arranque seguro de Nginx
 CERT_DIR="./certbot/conf/live/${DOMINIO}"
