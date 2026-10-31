@@ -52,3 +52,8 @@ desktop.ini
 # Test outputs
 **/results-bruno.*
 **/test-results/
+
+# DNS / Cloudflare export/import files
+cloudflare-dns-*.txt
+*.bind
+
